@@ -89,8 +89,9 @@ Tips:
 - Mode words also work in Portuguese: `ícone`, `objeto`, `robô`.
 - Write in English for the most faithful results; describe one concrete thing, no text or logos.
 
-**Agents:** the `agent_avatar` tool lets an agent draw the avatar of any profile, show it to you, and install it once you approve.
-- **Everything else is untouched:** any other image request passes straight through to the delegate backend (`openai-codex` by default), so `image_generate` keeps working as before.
+### Agents
+
+Ask your main agent something like *"make a robot avatar for the finance profile, with a piggy bank"*. It calls `agent_avatar(profile="finance", mode="robot", details="a piggy bank")`, sends you the picture, and calls it again with `image=<path>, apply=true` once you approve. The `avatar_pixel` toolset must be enabled for that agent (`hermes tools`).
 
 ## Catalog (optional)
 
