@@ -59,3 +59,11 @@ def test_white_background_keeps_inner_white():
 def test_prompt_mentions_references_only_when_present():
     assert pixel.REFERENCES_HINT in pixel.build_prompt("a cat", 3, True)
     assert pixel.REFERENCES_HINT not in pixel.build_prompt("a cat", 3, False)
+
+
+def test_modes():
+    assert pixel.split_mode("robot, holding keys") == ("robot", "holding keys")
+    assert pixel.split_mode("ícone") == ("icon", "")
+    assert pixel.split_mode("a red car") == (None, "a red car")
+    assert "no robot" in pixel.subject_for_unknown("Finance Bot", "bills", "icon")
+    assert "robot character" in pixel.subject_for_unknown("Finance Bot", "bills", "robot")

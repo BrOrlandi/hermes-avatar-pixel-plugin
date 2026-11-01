@@ -19,6 +19,10 @@ optional_env:
     description: "Image backend that draws the sprites and serves other image requests (default: openai-codex)"
     prompt: "Delegate image backend"
     password: false
+  - name: AVATAR_PIXEL_MODE
+    description: "Default drawing mode when no mode is given: icon (an object) or robot (a character)"
+    prompt: "Default mode (icon/robot)"
+    password: false
   - name: AVATAR_PIXEL_CATALOG
     description: "Path to catalog.json with per-agent subjects (default: <hermes root>/avatar-pixel/catalog.json)"
     prompt: "Avatar catalog path"

@@ -12,7 +12,7 @@ SIDE = 512
 
 STYLE_PROMPT = (
     "Pixel art game sprite in exactly the same style as the first {n} reference images (they are style "
-    "examples only, do not copy their subjects): chunky visible pixels (about 48 pixels tall overall), "
+    "examples only: do not copy their subjects, clothing, hats, accessories or props):chunky visible pixels (about 48 pixels tall overall), "
     "crisp dark 1-pixel outline, flat colors with 2-3 shading tones per color, no anti-aliasing, no "
     "gradients, no text, no letters, no drop shadow, cute chibi proportions, three-quarter view, "
     "centered, filling about 80% of the frame. Solid flat magenta background (#FF00FF) everywhere "
@@ -42,11 +42,38 @@ def parse_avatar_prompt(prompt: str) -> Optional[dict]:
     return None
 
 
-def subject_for_unknown(title: str, description: str) -> str:
-    """Subject for an agent that has no catalog entry: let the model pick one symbol for the role."""
+MODES = ("icon", "robot")
+DEFAULT_MODE = "icon"
+_MODE_WORDS = {"icon": "icon", "ícone": "icon", "icone": "icon", "object": "icon", "objeto": "icon",
+               "robot": "robot", "robô": "robot", "robo": "robot", "bot": "robot", "character": "robot"}
+
+
+def normalize_mode(value: Optional[str]) -> Optional[str]:
+    return _MODE_WORDS.get(str(value or "").strip().casefold())
+
+
+def split_mode(details: str) -> tuple[Optional[str], str]:
+    """Leading mode word in free text: 'robot, holding keys' -> ('robot', 'holding keys')."""
+    m = re.match(r"^\s*([^\s,.;:]+)\s*[,.;:]?\s*(.*)$", details or "", re.S)
+    if m and (mode := normalize_mode(m.group(1))):
+        return mode, m.group(2).strip()
+    return None, (details or "").strip()
+
+
+def subject_for_unknown(title: str, description: str, mode: str = DEFAULT_MODE, theme: str = "") -> str:
+    """Subject for an agent drawn from its role. ``icon``: a single object, like an app icon.
+    ``robot``: a small robot character personifying the agent, holding the tools of its job."""
     role = f'an AI assistant called "{title}"' + (f" whose job is: {description}" if description else "")
-    return (f"one single concrete object or small character that clearly symbolizes {role}. "
-            "Pick the most recognizable symbol for that job; no text, no screens with writing.")
+    hint = f" Theme to use: {theme}." if theme else ""
+    if mode == "robot":
+        return (f"a small cute robot character that personifies {role}, wearing or holding the most "
+                f"recognizable tools and props of that job.{hint} Do not copy clothing, hats or props "
+                "from the style reference images (no chef hat, apron or backpack unless this job really "
+                "uses one); give it a hat or outfit only if it clearly belongs to this job, otherwise a "
+                "bare robot head. No text, no screens with writing.")
+    return (f"one single concrete object (or a tight group of two or three objects) that clearly "
+            f"symbolizes {role}, like an app icon.{hint} An object only: no character, no robot, no "
+            "person, no face, no eyes, no hands. No text, no screens with writing.")
 
 
 def build_prompt(subject: str, n_style: int, has_references: bool) -> str:

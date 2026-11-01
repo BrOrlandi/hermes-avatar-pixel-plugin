@@ -106,32 +106,45 @@ def _profile_identity(profile: str) -> tuple[str, str]:
 
 
 # --- the avatar itself ----------------------------------------------------------------------------
+def _default_mode() -> str:
+    return pixel.normalize_mode(os.environ.get("AVATAR_PIXEL_MODE")) or pixel.DEFAULT_MODE
+
+
 def make_avatar(*, title: str = "", description: str = "", details: str = "", subject: str = "",
-                profile: str = "", prompt_for_result: str = "") -> dict[str, Any]:
+                profile: str = "", mode: str = "", prompt_for_result: str = "") -> dict[str, Any]:
     """Draw one avatar and return an image_gen result dict (``image`` is a PNG path in the cache).
 
-    Subject, in order: ``subject`` as given; the catalog entry (by profile id or title); otherwise the
-    model picks a symbol from title + description. ``details`` is always appended as extra direction."""
+    Subject, in order: ``subject`` as given; with an explicit ``mode`` (icon|robot), the agent's role
+    in that mode, using the catalog subject only as a theme; the catalog entry (by profile id or
+    title); otherwise the agent's role in the default mode. ``details`` is always appended."""
     from PIL import Image
 
     catalog, base = _load_catalog()
     entry = (pixel.find_catalog_entry(catalog, profile) if profile else None) \
         or (pixel.find_catalog_entry(catalog, title) if title else None) or {}
     shown_prompt = prompt_for_result or f"avatar: {title or profile or subject}"
+    mode = pixel.normalize_mode(mode) or ""
+    custom = bool(details or subject or mode)
 
     fixed = pixel.entry_field(entry, "image", "solto_fixo")
-    if fixed and not details and not subject:  # hand-made avatar: return it as is
+    if fixed and not custom:  # hand-made avatar: return it as is
         return _save(Image.open(base / fixed).convert("RGBA"), shown_prompt, "fixed", {"source": str(fixed)})
 
     raw_fixed = pixel.entry_field(entry, "raw", "sprite_fixo")
-    if raw_fixed and not details and not subject:
+    if raw_fixed and not custom:
         raw, used = Image.open(base / raw_fixed), "fixed-raw"
     else:
         delegate = _delegate()
         if delegate is None:
             raise RuntimeError(f"delegate image backend '{_delegate_id()}' is not registered")
-        main = subject or pixel.entry_field(entry, "subject", "assunto") \
-            or pixel.subject_for_unknown(title or profile or "agent", description)
+        catalog_subject = pixel.entry_field(entry, "subject", "assunto") or ""
+        name = title or profile or "agent"
+        if subject:
+            main = subject
+        elif mode:
+            main = pixel.subject_for_unknown(name, description, mode, theme=catalog_subject)
+        else:
+            main = catalog_subject or pixel.subject_for_unknown(name, description, _default_mode())
         if details:
             main = f"{main}. Extra direction from the user: {details}"
         refs = pixel.resolve_paths(base, pixel.entry_field(entry, "references", "referencias"))
@@ -271,8 +284,14 @@ class AvatarPixelProvider(ImageGenProvider):
                     name, description = _profile_identity(profile)
             except Exception:
                 pass
-            return make_avatar(title=name, description=description, profile=profile,
-                               details=rest.strip(), prompt_for_result=prompt)
+            mode, details = pixel.split_mode(rest)
+            return make_avatar(title=name, description=description, profile=profile, mode=mode or "",
+                               details=details, prompt_for_result=prompt)
+        mode, rest = pixel.split_mode(text)
+        if mode == "robot" and rest:
+            text = f"a small cute robot character: {rest}"
+        elif mode == "icon" and rest:
+            text = f"{rest}. An object only: no character, no robot, no face"
         return make_avatar(subject=text, prompt_for_result=prompt)
 
 
@@ -291,6 +310,9 @@ TOOL_SCHEMA = {
             "details": {"type": "string", "description": "Optional extra direction for the drawing, e.g. "
                         "'a piggy bank wearing glasses'. Combined with the profile's name and description."},
             "subject": {"type": "string", "description": "Optional: replace the subject entirely (English)."},
+            "mode": {"type": "string", "enum": ["icon", "robot"], "description":
+                     "icon: a single object, like an app icon. robot: a small robot character personifying "
+                     "the agent. Omit to keep the profile's catalog subject (or the default mode)."},
             "image": {"type": "string", "description": "Path of an already generated avatar to apply."},
             "apply": {"type": "boolean", "description": "Install as the profile's avatar. Default false."},
         },
@@ -311,7 +333,8 @@ def agent_avatar(args: dict, **_kw) -> str:
             title, description = _profile_identity(profile)
             r = make_avatar(title=title, description=description, profile=profile,
                             details=str(args.get("details") or "").strip(),
-                            subject=str(args.get("subject") or "").strip())
+                            subject=str(args.get("subject") or "").strip(),
+                            mode=str(args.get("mode") or "").strip())
             if not r.get("success"):
                 return json.dumps({"success": False, "error": r.get("error") or "generation failed"})
             image = r["image"]
