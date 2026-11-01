@@ -4,6 +4,12 @@ All notable changes to this plugin are documented here. The format follows [Keep
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-01
+
+### Changed
+
+- `plugin.yaml` declares `requires_hermes: ">=0.22.5"`, the oldest Hermes this release was tested on, so older versions skip the plugin instead of failing at load.
+
 ## [1.0.0] - 2026-11-01
 
 First public release.
@@ -22,5 +28,6 @@ First public release.
 
 - Generate tab no longer says "No image model available" on gateways that serve several profiles: the plugin binds the profile's secret scope before reading the image backend's credentials.
 
-[Unreleased]: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin/releases/tag/v1.0.0

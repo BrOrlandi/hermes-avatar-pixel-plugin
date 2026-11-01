@@ -113,6 +113,14 @@ Fix the subject, reference images or a hand-made avatar per profile in `<hermes 
 | `image` | Hand-made transparent avatar returned as is |
 | `holes` | `[x, y]` seeds for the white-background fallback, for enclosed gaps |
 
+## What it touches
+
+- **Network:** none of its own. Drawings go through the delegate image backend you configured (with `openai-codex`, OpenAI's image API under your ChatGPT login), with the three style sprites and any catalog reference images attached.
+- **Files read:** `profile.yaml` of the profile being drawn (name and description), the optional catalog and its reference images.
+- **Files written:** generated PNGs in Hermes's image cache. Only `agent_avatar` with `apply=true` writes outside it: the profile's `assets/avatar.png` and `profile.yaml` (`ui_meta.hermes-bots`), keeping the previous files as `.bak-avatar-<timestamp>`.
+- **Credentials:** never read directly. On a gateway serving several profiles the Desktop's `image.generate` RPC runs without a profile secret scope ([hermes-agent#135368](https://github.com/NousResearch/hermes-agent/issues/135368)); until [#135369](https://github.com/NousResearch/hermes-agent/pull/135369) lands, the plugin binds the current profile's scope with Hermes's own `agent.secret_scope` helpers around its calls, the same scope `_profile_scoped` RPCs bind. It does nothing when a scope is already active or multiplexing is off.
+- No background processes, shell commands or telemetry.
+
 ## Development
 
 ```bash

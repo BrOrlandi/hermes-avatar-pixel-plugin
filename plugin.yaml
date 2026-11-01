@@ -1,9 +1,10 @@
 name: avatar-pixel
 label: Avatar Pixel
 kind: backend
-version: 1.0.0
+version: 1.0.1
 author: Bruno Orlandi
 license: MIT
+requires_hermes: ">=0.22.5"
 homepage: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin
 tags: [image_gen, avatar, pixel-art, desktop]
 description: >
