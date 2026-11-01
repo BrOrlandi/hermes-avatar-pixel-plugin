@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import shutil
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -60,6 +61,32 @@ def _load_catalog() -> tuple[dict, Path]:
     except Exception as exc:
         logger.warning("avatar-pixel: could not read catalog %s: %s", path, exc)
         return {}, HERE
+
+
+@contextmanager
+def _secret_scope():
+    """Bind the current profile's secret scope when none is active.
+
+    On a multiplexed gateway (several profiles in one process) Hermes fails closed on secret reads
+    outside a profile scope, and the Desktop's ``image.generate`` RPC runs unscoped: the Codex
+    credential lookup raises UnscopedSecretError, so every image backend reports unavailable
+    ("No image model available"). Scoping here keeps the delegate usable from that RPC."""
+    token = None
+    try:
+        from agent import secret_scope as ss
+        if ss.is_multiplex_active() and ss.current_secret_scope() is None:
+            from hermes_constants import get_hermes_home
+            home = Path(get_hermes_home())
+            token = ss.set_secret_scope(ss.build_profile_secret_scope(home), profile_home=str(home))
+    except Exception:
+        logger.debug("avatar-pixel: could not bind a secret scope", exc_info=True)
+        token = None
+    try:
+        yield
+    finally:
+        if token is not None:
+            from agent import secret_scope as ss
+            ss.reset_secret_scope(token)
 
 
 def _delegate_id() -> str:
@@ -226,7 +253,8 @@ class AvatarPixelProvider(ImageGenProvider):
 
     def is_available(self) -> bool:
         d = _delegate()
-        return bool(d and d.is_available())
+        with _secret_scope():
+            return bool(d and d.is_available())
 
     def capabilities(self) -> dict[str, Any]:
         d = _delegate()
@@ -250,6 +278,13 @@ class AvatarPixelProvider(ImageGenProvider):
     def generate(self, prompt: str, aspect_ratio: str = DEFAULT_ASPECT_RATIO, *,
                  image_url: Optional[str] = None, reference_image_urls: Optional[list[str]] = None,
                  **kwargs: Any) -> dict[str, Any]:
+        with _secret_scope():
+            return self._generate(prompt, aspect_ratio, image_url=image_url,
+                                  reference_image_urls=reference_image_urls, **kwargs)
+
+    def _generate(self, prompt: str, aspect_ratio: str = DEFAULT_ASPECT_RATIO, *,
+                  image_url: Optional[str] = None, reference_image_urls: Optional[list[str]] = None,
+                  **kwargs: Any) -> dict[str, Any]:
         request = None if image_url else pixel.parse_avatar_prompt(prompt or "")
         if request is None:
             delegate = _delegate()
