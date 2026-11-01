@@ -1,0 +1,26 @@
+# Changelog
+
+All notable changes to this plugin are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+## [1.0.0] - 2026-11-01
+
+First public release.
+
+### Added
+
+- Image-gen backend `avatar-pixel`: Hermes Desktop's *Edit profile → Generate* and *New bot → Generate* return a transparent pixel art sprite in one shared style instead of a generic robot face.
+- Two modes: `icon` (a single object, the default) and `robot` (a small robot character personifying the agent). Pick one in the Generate box (`icon …`, `robot …`, `Bot name: robot`) or set the default with `AVATAR_PIXEL_MODE`.
+- `Bot name: extra direction` in the Generate box combines an existing bot's name and description with your own text.
+- `agent_avatar` tool: an agent draws the avatar of any profile, shows it to you, and installs it (`apply=true`) once you approve.
+- Optional catalog (`<hermes root>/avatar-pixel/catalog.json` or `AVATAR_PIXEL_CATALOG`) to pin a subject, reference images or a hand-made avatar per profile.
+- Pass-through: every other image request goes unchanged to the delegate backend (`openai-codex` by default, `AVATAR_PIXEL_DELEGATE` to change it).
+- Example gallery of 16 agents in both modes.
+
+### Fixed
+
+- Generate tab no longer says "No image model available" on gateways that serve several profiles: the plugin binds the profile's secret scope before reading the image backend's credentials.
+
+[Unreleased]: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin/releases/tag/v1.0.0

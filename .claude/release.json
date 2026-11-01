@@ -1,0 +1,28 @@
+{
+  "manifestVersion": 1,
+  "commitConvention": "free",
+  "bump": { "policy": "manual", "cadence": "per-release", "confirm": true },
+  "apps": [
+    {
+      "id": "plugin",
+      "label": "avatar-pixel Hermes plugin",
+      "kind": "library",
+      "version": {
+        "anchor": "tag",
+        "tagPrefix": "v",
+        "annotatedTag": true,
+        "files": [
+          { "path": "plugin.yaml", "format": "yaml", "key": "version", "kind": "semver" }
+        ]
+      },
+      "changelogs": [
+        { "path": "CHANGELOG.md", "format": "keep-a-changelog", "audience": "public", "language": "en", "detail": "full" }
+      ],
+      "publish": [
+        { "channel": "git-tag" },
+        { "channel": "github-release", "notesFrom": "CHANGELOG.md", "latest": true }
+      ],
+      "docs": ["CLAUDE.md#release--changelog"]
+    }
+  ]
+}
