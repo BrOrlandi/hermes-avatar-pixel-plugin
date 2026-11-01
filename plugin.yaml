@@ -1,0 +1,25 @@
+name: avatar-pixel
+label: Avatar Pixel
+kind: backend
+version: 0.1.0
+author: Bruno Orlandi
+license: MIT
+homepage: https://github.com/BrOrlandi/hermes-avatar-pixel-plugin
+tags: [image_gen, avatar, pixel-art, desktop]
+description: >
+  Image-gen backend that gives every agent a pixel art avatar in one shared
+  style. Hermes Desktop's Edit profile -> Generate returns a transparent pixel
+  art sprite instead of a generic robot face; every other image request passes
+  through unchanged to the delegate backend (openai-codex by default).
+provides_tools:
+  - agent_avatar
+provides_hooks: []
+optional_env:
+  - name: AVATAR_PIXEL_DELEGATE
+    description: "Image backend that draws the sprites and serves other image requests (default: openai-codex)"
+    prompt: "Delegate image backend"
+    password: false
+  - name: AVATAR_PIXEL_CATALOG
+    description: "Path to catalog.json with per-agent subjects (default: <hermes root>/avatar-pixel/catalog.json)"
+    prompt: "Avatar catalog path"
+    password: false

@@ -1,0 +1,18 @@
+{
+  "finance-bot": {"title": "Finance Bot", "description": "Tracks my bills, budget and investments"},
+  "my-health-bot": {"title": "My Health Bot", "description": "Keeps my exams, medicines and doctor appointments organized"},
+  "developer-bot": {"title": "Developer Bot", "description": "Writes code, reviews pull requests and fixes bugs"},
+  "shopping-assistant": {"title": "Shopping Assistant", "description": "Compares prices and tracks my online orders"},
+  "travel-planner": {"title": "Travel Planner", "description": "Plans trips, flights and hotel bookings"},
+  "meal-prep-chef": {"title": "Meal Prep Chef", "description": "Plans weekly meals and the grocery list"},
+  "car-care-bot": {"title": "Car Care Bot", "description": "Reminds me of oil changes, tires and car maintenance"},
+  "smart-home-bot": {"title": "Smart Home Bot", "description": "Controls the lights, thermostat and home devices"},
+  "fitness-coach": {"title": "Fitness Coach", "description": "Builds my workouts and tracks my training"},
+  "study-buddy": {"title": "Study Buddy", "description": "Helps me study with flashcards and summaries"},
+  "inbox-triage": {"title": "Inbox Triage", "description": "Sorts my email and drafts replies"},
+  "plant-care-bot": {"title": "Plant Care Bot", "description": "Reminds me to water and fertilize my plants"},
+  "pet-care-bot": {"title": "Pet Care Bot", "description": "Tracks my dog's vaccines, food and vet visits"},
+  "security-watch": {"title": "Security Watch", "description": "Monitors servers and alerts me about incidents"},
+  "music-dj": {"title": "Music DJ", "description": "Builds playlists for every mood"},
+  "calendar-assistant": {"title": "Calendar Assistant", "description": "Schedules meetings and protects my focus time"}
+}
