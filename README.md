@@ -53,6 +53,78 @@ Hermes Desktop reads the image backend of the profile it is talking to, so set `
 
 ## Using it
 
+### Generate tab: writing the prompt
+
+The *Describe your avatar…* box in Edit profile → Generate (and in New bot) decides what is drawn. Start with the mode word when you want to choose: `icon` (an object, like an app icon) or `robot` (a small robot character personifying the bot).
+
+<img src="docs/new-bot-generate.png" width="360" alt="New bot → Generate, with a description typed in the prompt box">
+
+| You type | What is drawn |
+|---|---|
+| *(nothing)* | the bot's catalog entry, or an **icon** picked from its name and description |
+| `icon an inbox tray full of letters` | that object |
+| `robot a bot that triages my email inbox` | a robot character for that job |
+| `Bot for triaging my email inbox` | exactly what you wrote (no mode word: the model decides, and "bot" usually means a robot) |
+| `Inbox Triage: robot` or `Inbox Triage: icon` | an existing bot (by title or profile id) in the chosen mode, using its description |
+| `Inbox Triage: icon, red envelopes` | the same, with extra direction |
+
+Tips:
+
+- **New bot:** the bot doesn't exist yet, so describe the job after the mode word (`icon …` / `robot …`). The `Name: …` form only works for bots that already exist.
+- **Edit profile:** `Name: robot` or `Name: icon` is enough; the bot's description fills in the rest.
+- Mode words also work in Portuguese: `ícone`, `objeto`, `robô`.
+- Write in English for the most faithful results; describe one concrete thing, no text or logos.
+
+**Agents:** the `agent_avatar` tool lets an agent draw the avatar of any profile, show it to you, and install it once you approve.
+- **Everything else is untouched:** any other image request passes straight through to the delegate backend (`openai-codex` by default), so `image_generate` keeps working as before.
+
+## Two modes
+
+- **icon** (default): a single object that stands for the agent's job, like an app icon.
+- **robot**: a small robot character personifying the agent, holding the tools of its job.
+
+Both come from the agent's name and description only (`examples/examples.json`); the icon column is exactly what the Generate button returns with an empty box.
+
+| Agent | Icon | Robot |
+|---|:-:|:-:|
+| **Finance Bot**<br>Tracks my bills, budget and investments | <img src="examples/icon/finance-bot.png" width="112"> | <img src="examples/robot/finance-bot.png" width="112"> |
+| **My Health Bot**<br>Keeps my exams, medicines and doctor appointments organized | <img src="examples/icon/my-health-bot.png" width="112"> | <img src="examples/robot/my-health-bot.png" width="112"> |
+| **Developer Bot**<br>Writes code, reviews pull requests and fixes bugs | <img src="examples/icon/developer-bot.png" width="112"> | <img src="examples/robot/developer-bot.png" width="112"> |
+| **Shopping Assistant**<br>Compares prices and tracks my online orders | <img src="examples/icon/shopping-assistant.png" width="112"> | <img src="examples/robot/shopping-assistant.png" width="112"> |
+| **Travel Planner**<br>Plans trips, flights and hotel bookings | <img src="examples/icon/travel-planner.png" width="112"> | <img src="examples/robot/travel-planner.png" width="112"> |
+| **Meal Prep Chef**<br>Plans weekly meals and the grocery list | <img src="examples/icon/meal-prep-chef.png" width="112"> | <img src="examples/robot/meal-prep-chef.png" width="112"> |
+| **Car Care Bot**<br>Reminds me of oil changes, tires and car maintenance | <img src="examples/icon/car-care-bot.png" width="112"> | <img src="examples/robot/car-care-bot.png" width="112"> |
+| **Smart Home Bot**<br>Controls the lights, thermostat and home devices | <img src="examples/icon/smart-home-bot.png" width="112"> | <img src="examples/robot/smart-home-bot.png" width="112"> |
+| **Fitness Coach**<br>Builds my workouts and tracks my training | <img src="examples/icon/fitness-coach.png" width="112"> | <img src="examples/robot/fitness-coach.png" width="112"> |
+| **Study Buddy**<br>Helps me study with flashcards and summaries | <img src="examples/icon/study-buddy.png" width="112"> | <img src="examples/robot/study-buddy.png" width="112"> |
+| **Inbox Triage**<br>Sorts my email and drafts replies | <img src="examples/icon/inbox-triage.png" width="112"> | <img src="examples/robot/inbox-triage.png" width="112"> |
+| **Plant Care Bot**<br>Reminds me to water and fertilize my plants | <img src="examples/icon/plant-care-bot.png" width="112"> | <img src="examples/robot/plant-care-bot.png" width="112"> |
+| **Pet Care Bot**<br>Tracks my dog's vaccines, food and vet visits | <img src="examples/icon/pet-care-bot.png" width="112"> | <img src="examples/robot/pet-care-bot.png" width="112"> |
+| **Security Watch**<br>Monitors servers and alerts me about incidents | <img src="examples/icon/security-watch.png" width="112"> | <img src="examples/robot/security-watch.png" width="112"> |
+| **Music DJ**<br>Builds playlists for every mood | <img src="examples/icon/music-dj.png" width="112"> | <img src="examples/robot/music-dj.png" width="112"> |
+| **Calendar Assistant**<br>Schedules meetings and protects my focus time | <img src="examples/icon/calendar-assistant.png" width="112"> | <img src="examples/robot/calendar-assistant.png" width="112"> |
+
+## How it works
+
+1. The style lives in `assets/style/` (three approved sprites sent as reference images) and in `STYLE_PROMPT` (`pixel.py`): chunky pixels, dark 1-pixel outline, flat colors, chibi proportions, no text.
+2. The model draws on a flat magenta background; the plugin keys it out (falling back to a flood fill when the model returns white), crops to the sprite and scales it with nearest neighbour to fill a 512×512 square.
+3. The result is a transparent PNG, so it looks right in light and dark themes.
+
+## Install
+
+```bash
+git clone https://github.com/BrOrlandi/hermes-avatar-pixel-plugin ~/.hermes/plugins/avatar-pixel
+hermes plugins enable avatar-pixel
+hermes config set image_gen.provider avatar-pixel        # in every profile that should use it
+hermes gateway restart
+```
+
+Requires an image backend that accepts reference images (`openai-codex` with gpt-image-2 works without an API key: `hermes auth add openai-codex`). Pick another with `AVATAR_PIXEL_DELEGATE`. Set the default mode with `AVATAR_PIXEL_MODE=icon|robot`.
+
+Hermes Desktop reads the image backend of the profile it is talking to, so set `image_gen.provider` in each profile (or the Generate tab says "No image model available").
+
+## Using it
+
 **Generate tab** (Edit profile or Create bot):
 
 | You type | What is drawn |
