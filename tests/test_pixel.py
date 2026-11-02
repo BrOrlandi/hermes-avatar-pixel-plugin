@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -67,3 +69,23 @@ def test_modes():
     assert pixel.split_mode("a red car") == (None, "a red car")
     assert "no robot" in pixel.subject_for_unknown("Finance Bot", "bills", "icon")
     assert "robot character" in pixel.subject_for_unknown("Finance Bot", "bills", "robot")
+
+
+def test_generated_avatar_path_accepts_only_plugin_output(tmp_path):
+    cache = tmp_path / "cache" / "generated" / "images"
+    cache.mkdir(parents=True)
+    avatar = cache / "avatar_pixel_20261102_120000_abcdef12.png"
+    Image.new("RGBA", (2, 2), (255, 0, 0, 255)).save(avatar)
+    assert pixel.generated_avatar_path(str(avatar), cache) == avatar
+
+    other = tmp_path / avatar.name
+    other.write_bytes(b"png")
+    unrelated = cache / "other_20261102_120000_abcdef12.png"
+    unrelated.write_bytes(b"png")
+    link = cache / "avatar_pixel_20261102_120001_abcdef12.png"
+    link.symlink_to(other)
+    invalid_png = cache / "avatar_pixel_20261102_120002_abcdef12.png"
+    invalid_png.write_bytes(b"not a PNG")
+    for image in (other, unrelated, link, invalid_png, cache / "missing.png"):
+        with pytest.raises(ValueError):
+            pixel.generated_avatar_path(str(image), cache)

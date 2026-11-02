@@ -9,6 +9,30 @@ from typing import Optional
 from PIL import Image
 
 SIDE = 512
+_AVATAR_OUTPUT_NAME = re.compile(r"avatar_pixel_\d{8}_\d{6}_[0-9a-f]{8}\.png\Z")
+
+
+def generated_avatar_path(image: str, cache_dir: Path) -> Path:
+    """Accept only a PNG saved by this plugin in the current profile's image cache."""
+    path = Path(image)
+    if not path.is_absolute() or path.is_symlink():
+        raise ValueError("image must be a generated avatar in this profile's image cache")
+    try:
+        resolved = path.resolve(strict=True)
+        expected_dir = cache_dir.resolve(strict=True)
+    except (OSError, RuntimeError) as exc:
+        raise ValueError("generated avatar image not found") from exc
+    if (resolved.parent != expected_dir or not _AVATAR_OUTPUT_NAME.fullmatch(resolved.name)
+            or not resolved.is_file()):
+        raise ValueError("image must be a generated avatar in this profile's image cache")
+    try:
+        with Image.open(resolved) as avatar:
+            if avatar.format != "PNG":
+                raise ValueError("generated avatar must be a PNG image")
+            avatar.verify()
+    except (OSError, SyntaxError) as exc:
+        raise ValueError("generated avatar must be a valid PNG image") from exc
+    return resolved
 
 STYLE_PROMPT = (
     "Pixel art game sprite in exactly the same style as the first {n} reference images (they are style "
